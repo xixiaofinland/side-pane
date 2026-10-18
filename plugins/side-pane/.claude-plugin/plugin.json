@@ -1,0 +1,25 @@
+{
+  "name": "side-pane",
+  "version": "0.1.0",
+  "description": "A side pane that keeps the options and open questions Claude asks you about in view",
+  "author": { "name": "Xi Xiao", "url": "https://github.com/xixiaofinland" },
+  "homepage": "https://github.com/xixiaofinland/side-pane",
+  "repository": "https://github.com/xixiaofinland/side-pane",
+  "license": "MIT",
+  "keywords": ["pane", "options", "questions", "mod"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "autoOpen": {
+      "type": "boolean",
+      "title": "Open automatically",
+      "description": "Open the pane when Claude first fills it",
+      "default": true
+    },
+    "maxChars": {
+      "type": "number",
+      "title": "Maximum length",
+      "description": "Longest pane content in characters; longer content is cut",
+      "default": 3000
+    }
+  }
+}
