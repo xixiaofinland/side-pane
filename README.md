@@ -4,10 +4,17 @@ A [Claude Code](https://code.claude.com) plugin that keeps the options and open
 questions Claude asks you about in a pane beside the conversation. In a long chat you no
 longer scroll back to remember what "option 2" was.
 
+![Claude fills the side pane with its options and questions, then updates it as you answer](docs/side-pane.gif)
+
 Claude fills the pane itself: the plugin gives it a tool and a short instruction to call
 it whenever it lists options or asks you something. Each session has its own pane, so
 parallel sessions never overwrite each other, and the last pane of a directory comes
 back when you start a new session there.
+
+## Requirements
+
+Claude Code 2.1.289 or newer. The pane is built on Claude Code mods (plugins of function
+hooks), which are in early access.
 
 ## Install
 
@@ -37,8 +44,9 @@ Change them in `/config`:
 
 - Tools `mcp__side-pane__update` (`{ markdown }`, replaces the pane) and
   `mcp__side-pane__clear`.
-- A `prompt.compose` hook adds the instructions to the system prompt, so no `CLAUDE.md`
-  rule or memory note is needed.
+- The rules for when to call it ship in the tool's own description, which the plugin keeps
+  in the prompt rather than behind ToolSearch, plus a one-line nudge in the first
+  message's context. No `CLAUDE.md` rule or memory note is needed.
 - The content lives in the session's plugin state; the last pane per working directory
   is also kept in the plugin's store.
 

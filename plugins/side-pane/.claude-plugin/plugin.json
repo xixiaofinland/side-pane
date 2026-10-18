@@ -1,12 +1,24 @@
 {
   "name": "side-pane",
-  "version": "0.1.0",
-  "description": "A side pane that keeps the options and open questions Claude asks you about in view",
-  "author": { "name": "Xi Xiao", "url": "https://github.com/xixiaofinland" },
+  "version": "0.1.1",
+  "description": "Pins the options and open questions Claude asks you to choose from in a side pane, so you never scroll back to find \"option 2\"",
+  "author": {
+    "name": "Xi Xiao",
+    "url": "https://github.com/xixiaofinland"
+  },
   "homepage": "https://github.com/xixiaofinland/side-pane",
   "repository": "https://github.com/xixiaofinland/side-pane",
   "license": "MIT",
-  "keywords": ["pane", "options", "questions", "mod"],
+  "keywords": [
+    "pane",
+    "sidebar",
+    "options",
+    "choices",
+    "decisions",
+    "questions",
+    "long-conversations",
+    "mod"
+  ],
   "types": "./types/index.d.ts",
   "userConfig": {
     "autoOpen": {

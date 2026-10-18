@@ -1,6 +1,9 @@
 {
   "name": "side-pane",
-  "owner": { "name": "Xi Xiao", "url": "https://github.com/xixiaofinland" },
+  "owner": {
+    "name": "Xi Xiao",
+    "url": "https://github.com/xixiaofinland"
+  },
   "metadata": {
     "description": "The side-pane Claude Code plugin"
   },
@@ -8,7 +11,7 @@
     {
       "name": "side-pane",
       "source": "./plugins/side-pane",
-      "description": "A side pane that keeps the options and open questions Claude asks you about in view",
+      "description": "Pins the options and open questions Claude asks you to choose from in a side pane, so you never scroll back to find \"option 2\"",
       "category": "productivity"
     }
   ]
