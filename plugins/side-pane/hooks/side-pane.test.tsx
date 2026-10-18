@@ -80,20 +80,23 @@ test(
   },
 )
 
-test('the system prompt carries the instructions', async ($, on) => {
-  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'Hi.', scope: 'shared' }] }))
-  const { sections } = await $.prompt.compose({
-    model: 'claude-opus-5-5',
-    promptModel: 'claude-opus-5-5',
-    surfaces: ['terminal'],
-    tools: [],
-    outputStyle: null,
-    traits: [],
+test('the update tool is listed in the prompt, not behind ToolSearch', async ($, on) => {
+  on('tool.describe', (_$, e) => ({ description: e.description, isDeferred: true }))
+  const described = await $.tool.describe({
+    tool: 'mcp__side-pane__update',
+    description: 'Rules.',
+    isDeferred: true,
+    provider: { plugin: 'side-pane', tier: 'user' },
   })
-  expect(sections[0]?.id).toBe('intro')
-  const ours = sections.find(section => section.id === 'side-pane:instructions')
-  expect(ours?.text).toMatch(/mcp__side-pane__update/)
-  expect(ours?.scope).toBe('session')
+  expect(described.isDeferred).toBe(false)
+  expect(described.description).toBe('Rules.')
+})
+
+test('the first message carries a nudge to use the tool', async ($, on) => {
+  on('prompt.context', () => ({ blocks: [{ name: 'currentDate', text: '2026-10-18' }] }))
+  const { blocks } = await $.prompt.context({ blocks: [] })
+  expect(blocks[0]?.name).toBe('currentDate')
+  expect(blocks.find(block => block.name === 'side-pane')?.text).toMatch(/mcp__side-pane__update/)
 })
 
 test('a new session shows the last pane of its directory', async ($, on) => {

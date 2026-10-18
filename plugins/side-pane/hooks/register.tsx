@@ -18,17 +18,17 @@ const storeKey = (cwd: string) => `last:${cwd}`
 
 const instructions = (maxChars: number) =>
   [
-    '# Side pane',
+    'Fill the side pane the user sees next to the conversation, so they need not scroll back to recall what "option 2" was.',
     '',
-    `The user sees a side pane next to this conversation, filled with the \`${UPDATE_TOOL}\` tool. It saves them scrolling back to recall what "option 2" was.`,
-    '',
-    `- Whenever you list options for the user to pick from, or ask them questions they still have to answer, also call \`${UPDATE_TOOL}\` with those items, in the same turn.`,
-    '- Pass the full pane each time: it replaces what was there. Keep items that are still open, drop ones the user settled.',
-    '- Group by context: a heading per project or topic, then its items, numbered the way you numbered them in the conversation.',
+    '- Whenever your reply lists options for the user to pick from, or asks them questions they still have to answer, call this tool first with those items, then write the reply.',
+    '- Pass the whole pane each time: it replaces what was there. When the user settles some items, keep the ones still open and add any new question you ask.',
+    '- Group by context: a heading per project or topic, then its items, numbered the way you number them in the reply.',
     `- Keep it short: a few words per item, no explanations, under ${maxChars} characters. Write in the language you are replying in.`,
-    `- When nothing is left open, call \`${CLEAR_TOOL}\`.`,
+    `- Call \`${CLEAR_TOOL}\` only when nothing is left open.`,
     '- Do not mention the pane or the tool calls in your reply.',
   ].join('\n')
+
+const NUDGE = `Whenever your reply lists options for the user or asks them questions, call \`${UPDATE_TOOL}\` first, as its description says.`
 
 async function open($: EngineInterface) {
   if ((await $.ui.panes()).some(pane => pane.id === PANE)) return
@@ -55,8 +55,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.tool.register({
       name: 'update',
-      description:
-        'Replace the content of the side pane the user sees next to the conversation. Use it for the options and open questions the user still has to answer.',
+      description: instructions(maxChars),
       inputSchema: {
         type: 'object',
         properties: {
@@ -92,15 +91,20 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
-  on('prompt.compose', async ($, e, next) => {
-    const composed = await next(e)
+  // The rules ride in the tool's own description, kept out of ToolSearch: a
+  // managed plugin may bypass a user plugin's prompt.context and
+  // prompt.compose hooks, and a deferred tool shows the model only its name.
+  on('tool.describe', { tool: UPDATE_TOOL }, async ($, e, next) => {
+    const described = await next(e)
 
-    return {
-      sections: [
-        ...composed.sections,
-        { id: `${PLUGIN}:instructions`, text: instructions(maxChars), scope: 'session' },
-      ],
-    }
+    return { ...described, isDeferred: false }
+  })
+
+  // A one-line nudge where the session lets user plugins add context.
+  on('prompt.context', async ($, e, next) => {
+    const context = await next(e)
+
+    return { ...context, blocks: [...context.blocks, { name: PLUGIN, text: NUDGE }] }
   })
 
   on('tool.call', { tool: UPDATE_TOOL }, async ($, e) => {
