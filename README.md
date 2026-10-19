@@ -26,9 +26,9 @@ hooks), which are in early access.
 ## Use
 
 - The pane opens the first time Claude fills it.
-- `/side-pane` opens it by hand; `/side-pane close` hides it, `/side-pane clear` empties it.
-  Once you close the pane (`/side-pane close`, its close mark or ctrl+x x), Claude keeps
-  it current but no longer reopens it in that session; `/side-pane` brings it back.
+- `/side-pane` shows or hides it; `/side-pane clear` empties it. Once you hide the pane
+  (`/side-pane`, its close mark or ctrl+x x), Claude keeps it current but no longer
+  reopens it in that session; `/side-pane` shows it again.
 - Claude Code places a pane it was not asked for only in a terminal at least 144 columns
   wide (110 once you have opened it yourself). In a narrower terminal you get a toast;
   run `/side-pane` and it opens at any width.

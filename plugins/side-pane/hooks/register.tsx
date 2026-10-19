@@ -75,8 +75,8 @@ export const register: Register = (on, options) => {
     })
     await $.command.register({
       name: 'side-pane',
-      description: 'Show the side pane (`close` hides it, `clear` empties it)',
-      argumentHint: '[close|clear]',
+      description: 'Show or hide the side pane (`clear` empties it)',
+      argumentHint: '[clear]',
       immediate: true,
     })
 
@@ -129,18 +129,22 @@ export const register: Register = (on, options) => {
     return { result: 'Side pane cleared.' }
   })
 
+  // /side-pane toggles: closing it also stops updates reopening it this session.
+  // A pane still waiting for room, or behind another tab, counts as hidden.
   on('command.run', { command: 'side-pane' }, async ($, e) => {
     const arg = e.args.trim()
     if (arg === 'clear') {
       await show($, '')
       return { text: 'Side pane cleared.' }
     }
-    if (arg === 'close' || arg === 'off') {
+    if (arg !== '')
+      return { text: 'Usage: /side-pane toggles the pane; /side-pane clear empties it.' }
+    const panes = await $.ui.panes()
+    if (panes.some(pane => pane.id === PANE && pane.isPlaced && pane.isShown)) {
       await update($, isDismissed, () => true)
       await $.ui.close({ id: PANE })
-      return { text: 'Side pane closed. Claude keeps it current; /side-pane shows it again.' }
+      return { text: 'Side pane closed; /side-pane shows it again.' }
     }
-    if (arg !== '') return { text: 'Usage: /side-pane [close|clear]' }
     await update($, isDismissed, () => false)
     await $.ui.open({ id: PANE, title: TITLE })
 

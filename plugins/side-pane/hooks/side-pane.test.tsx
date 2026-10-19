@@ -27,20 +27,31 @@ const stubEngine = (on: On, stored: Record<string, unknown> = {}) => {
   const closes: string[] = []
   on('session.cwd', () => ({ value: '/work/esp32' }))
   mock.store(on, stored)
-  on('ui.panes', () => ({ value: [] }))
+  // The pane is placed only when the person asked (a typed command).
+  const shown = new Set<string>()
+  on('ui.panes', () => ({
+    value: [...shown].map(id => ({
+      id,
+      title: id,
+      isShown: true,
+      isFocused: false,
+      isPlaced: true,
+    })),
+  }))
   on('ui.open', (_$, e) => {
     opens.push(e.id)
     return { value: { isPlaced: false, reason: 'narrow' } }
   })
   on('ui.close', (_$, e) => {
     closes.push(e.id)
+    shown.delete(e.id)
     return { value: undefined }
   })
   on('ui.toast', (_$, e) => {
     toasts.push(e.text)
     return { value: undefined }
   })
-  return { toasts, opens, closes }
+  return { toasts, opens, closes, shown }
 }
 
 test('the pane shows a hint while nothing is open', async $ => {
@@ -125,17 +136,19 @@ test('a new session shows the last pane of its directory', async ($, on) => {
   await ui.unmount()
 })
 
-test('/side-pane close hides the pane and keeps it hidden', async ($, on) => {
+test('/side-pane toggles the pane, and a closed pane stays closed', async ($, on) => {
   const engine = stubEngine(on)
-  const closed = await $.command.run(typed('close'))
+  engine.shown.add('side-pane')
+  const closed = await $.command.run(typed(''))
   expect(closed.text).toMatch(/closed/)
   expect(engine.closes).toEqual(['side-pane'])
   await $.tool.call({ tool: 'mcp__side-pane__update', markdown: '1. A' })
   expect(engine.opens).toEqual([])
 
-  const unknown = await $.command.run(typed('nope'))
-  expect(unknown.text).toMatch(/Usage/)
-
-  await $.command.run(typed(''))
+  const opened = await $.command.run(typed(''))
+  expect(opened.text).toMatch(/opened/)
   expect(engine.opens).toEqual(['side-pane'])
+
+  const unknown = await $.command.run(typed('off'))
+  expect(unknown.text).toMatch(/Usage/)
 })
