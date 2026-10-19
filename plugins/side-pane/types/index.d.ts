@@ -7,6 +7,8 @@ declare module 'claude-code' {
       isRestored: boolean
       // True once this session told the person the pane could not be placed.
       hasWarned: boolean
+      // True once the person closed the pane, so updates stop reopening it.
+      isDismissed: boolean
     }
   }
 }

@@ -10,6 +10,7 @@ const CLEAR_TOOL = 'mcp__side-pane__clear'
 const markdown = atom({ plugin: 'side-pane', key: 'markdown' } as const, '')
 const isRestored = atom({ plugin: 'side-pane', key: 'isRestored' } as const, false)
 const hasWarned = atom({ plugin: 'side-pane', key: 'hasWarned' } as const, false)
+const isDismissed = atom({ plugin: 'side-pane', key: 'isDismissed' } as const, false)
 
 // $.store is shared by every session, so the last content is kept per working
 // directory and parallel sessions never overwrite each other's live pane.
@@ -31,6 +32,7 @@ const instructions = (maxChars: number) =>
 const NUDGE = `Whenever your reply lists options for the user or asks them questions, call \`${UPDATE_TOOL}\` first, as its description says.`
 
 async function open($: EngineInterface) {
+  if (await read($, isDismissed)) return
   if ((await $.ui.panes()).some(pane => pane.id === PANE)) return
   const opened = await $.ui.open({ id: PANE, title: TITLE })
   if (opened.isPlaced || (await read($, hasWarned))) return
@@ -73,8 +75,8 @@ export const register: Register = (on, options) => {
     })
     await $.command.register({
       name: 'side-pane',
-      description: 'Show the side pane (`clear` empties it)',
-      argumentHint: '[clear]',
+      description: 'Show the side pane (`close` hides it, `clear` empties it)',
+      argumentHint: '[close|clear]',
       immediate: true,
     })
 
@@ -128,13 +130,29 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'side-pane' }, async ($, e) => {
-    if (e.args.trim() === 'clear') {
+    const arg = e.args.trim()
+    if (arg === 'clear') {
       await show($, '')
       return { text: 'Side pane cleared.' }
     }
+    if (arg === 'close' || arg === 'off') {
+      await update($, isDismissed, () => true)
+      await $.ui.close({ id: PANE })
+      return { text: 'Side pane closed. Claude keeps it current; /side-pane shows it again.' }
+    }
+    if (arg !== '') return { text: 'Usage: /side-pane [close|clear]' }
+    await update($, isDismissed, () => false)
     await $.ui.open({ id: PANE, title: TITLE })
 
     return { text: 'Side pane opened.' }
+  })
+
+  // Once the person closes the pane (its close mark, ctrl+x x), updates stop
+  // reopening it for this session; /side-pane brings it back.
+  on('ui.close', async ($, e, next) => {
+    if (e.id === PANE && e.origin.kind === 'person') await update($, isDismissed, () => true)
+
+    return next(e)
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

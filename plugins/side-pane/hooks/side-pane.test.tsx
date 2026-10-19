@@ -13,9 +13,18 @@ const mountPane = ($: Engine, surface: 'terminal' | 'desktop') =>
 
 // What the engine beneath the plugin answers: a project directory, a store in
 // memory, and a terminal too narrow to place a pane opened unasked.
+// /side-pane as the person types it at a terminal.
+const typed = (args: string) => ({
+  command: 'side-pane',
+  args,
+  origin: { kind: 'composer' } as const,
+  presentation: { isFullscreen: true, columns: 160 },
+})
+
 const stubEngine = (on: On, stored: Record<string, unknown> = {}) => {
   const toasts: string[] = []
   const opens: string[] = []
+  const closes: string[] = []
   on('session.cwd', () => ({ value: '/work/esp32' }))
   mock.store(on, stored)
   on('ui.panes', () => ({ value: [] }))
@@ -23,11 +32,15 @@ const stubEngine = (on: On, stored: Record<string, unknown> = {}) => {
     opens.push(e.id)
     return { value: { isPlaced: false, reason: 'narrow' } }
   })
+  on('ui.close', (_$, e) => {
+    closes.push(e.id)
+    return { value: undefined }
+  })
   on('ui.toast', (_$, e) => {
     toasts.push(e.text)
     return { value: undefined }
   })
-  return { toasts, opens }
+  return { toasts, opens, closes }
 }
 
 test('the pane shows a hint while nothing is open', async $ => {
@@ -110,4 +123,19 @@ test('a new session shows the last pane of its directory', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: /earlier session/ })).toBeDefined()
   expect(await ui.find({ type: 'Markdown', text: /Earlier item/ })).toBeDefined()
   await ui.unmount()
+})
+
+test('/side-pane close hides the pane and keeps it hidden', async ($, on) => {
+  const engine = stubEngine(on)
+  const closed = await $.command.run(typed('close'))
+  expect(closed.text).toMatch(/closed/)
+  expect(engine.closes).toEqual(['side-pane'])
+  await $.tool.call({ tool: 'mcp__side-pane__update', markdown: '1. A' })
+  expect(engine.opens).toEqual([])
+
+  const unknown = await $.command.run(typed('nope'))
+  expect(unknown.text).toMatch(/Usage/)
+
+  await $.command.run(typed(''))
+  expect(engine.opens).toEqual(['side-pane'])
 })
