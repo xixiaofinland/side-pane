@@ -38,7 +38,7 @@ async function open($: EngineInterface) {
   const opened = await $.ui.open({ id: PANE, title: TITLE })
   if (opened.isPlaced || (await read($, hasWarned))) return
   await update($, hasWarned, () => true)
-  $.ui.toast('side-pane: the terminal is too narrow to open the pane unasked; run /side-pane', {
+  $.ui.toast('side-pane: no room to open the pane unasked; run /side-pane to show it', {
     timeoutMs: 8000,
   })
 }

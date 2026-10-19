@@ -21,9 +21,10 @@ hooks), which are in early access.
 - The pane opens the first time Claude fills it.
 - `/side-pane` shows or hides it; `/side-pane clear` empties it. Once you hide the pane,
   Claude keeps it current but no longer reopens it in that session.
-- A pane Claude Code was not asked for is placed only in a terminal at least 144 columns
-  wide (110 once you have opened it yourself). In a narrower terminal you get a toast;
-  run `/side-pane` and it opens at any width.
+- Works in the terminal and in the Code tab of Claude Code Desktop.
+- In the terminal, a pane Claude Code was not asked for is placed only at least 144
+  columns wide (110 once you have opened it yourself). In a narrower terminal you get a
+  toast; run `/side-pane` and it opens at any width. Desktop places the pane itself.
 
 ## Settings
 
