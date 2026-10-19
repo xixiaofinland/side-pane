@@ -1,15 +1,19 @@
-# side-pane
+# side-pane: a sidebar for Claude Code's options and questions
 
-A [Claude Code](https://code.claude.com) plugin that keeps the options and open
-questions Claude asks you about in a pane beside the conversation. In a long chat you no
-longer scroll back to remember what "option 2" was.
+side-pane is a free, open-source [Claude Code](https://code.claude.com) plugin that pins
+the options and open questions Claude asks you about in a side panel next to the
+conversation. In a long chat you no longer scroll back to find what "option 2" was.
 
 ![Claude fills the side pane with its options and questions, then updates it as you answer](docs/side-pane.gif)
 
-Claude fills the pane itself: the plugin gives it a tool and a short instruction to call
-it whenever it lists options or asks you something. Each session has its own pane, so
-parallel sessions never overwrite each other, and the last pane of a directory comes
-back when you start a new session there.
+- **Claude fills it itself.** Whenever Claude lists options or asks you something, it
+  also writes them to the pane, grouped by topic and numbered like its reply, and updates
+  the pane as you answer.
+- **Stays tidy.** The topic you are on stays at the top; questions you skipped move under
+  "On hold" instead of piling up.
+- **Per session, remembered per project.** Parallel sessions never overwrite each other,
+  and the last pane of a directory comes back when you start a new session there.
+- **Private.** No network, no files read; works without any setup.
 
 ## Requirements
 
