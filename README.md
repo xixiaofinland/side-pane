@@ -51,6 +51,14 @@ Change them in `/config`:
   message's context. No `CLAUDE.md` rule or memory note is needed.
 - The content lives in the session's plugin state; the last pane per working directory
   is also kept in the plugin's store.
+- Unanswered items of an earlier topic move under an "On hold" heading at the bottom.
+
+## Data
+
+The plugin runs no commands, opens no network connections and reads no files. It keeps
+the pane's text in the session's plugin state, and the last pane of each working
+directory in Claude Code's local plugin store, keyed by that directory's path.
+`/side-pane clear` deletes that saved copy.
 
 ## Develop
 
