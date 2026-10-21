@@ -152,3 +152,30 @@ test('/side-pane toggles the pane, and a closed pane stays closed', async ($, on
   const unknown = await $.command.run(typed('off'))
   expect(unknown.text).toMatch(/Usage/)
 })
+
+test('each item copies or quotes itself on every surface', async ($, on) => {
+  stubEngine(on)
+  const copies: string[] = []
+  const fills: string[] = []
+  on('ui.copy', (_$, e) => {
+    copies.push(e.text)
+    return { value: { isCopied: true } }
+  })
+  on('prompt.fill', (_$, e) => {
+    fills.push(e.text)
+    return { isFilled: true }
+  })
+  const body = '## ESP32\n1. LED strip\n2. Sensor'
+  await $.tool.call({ tool: 'mcp__side-pane__update', markdown: body })
+
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await mountPane($, surface)
+    expect(await ui.find({ type: 'Markdown', text: /ESP32/ })).toBeDefined()
+    await ui.press({ key: 'copy:2' })
+    await ui.press({ key: 'quote:1' })
+    await ui.press({ key: 'copy-all' })
+    await ui.unmount()
+  }
+  expect(copies).toEqual(['2. Sensor', body, '2. Sensor', body])
+  expect(fills).toEqual(['> 1. LED strip\n', '> 1. LED strip\n'])
+})

@@ -1,6 +1,6 @@
 {
   "name": "side-pane",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Pins the options and open questions Claude asks you to choose from in a side pane, so you never scroll back to find \"option 2\"",
   "author": {
     "name": "Xi Xiao",

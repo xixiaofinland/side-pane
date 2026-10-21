@@ -30,6 +30,25 @@ const instructions = (maxChars: number) =>
     '- Do not mention the pane or the tool calls in your reply.',
   ].join('\n')
 
+// The pane splits into list items, each drawn with its own buttons, and the
+// runs of other lines (headings, prose) between them.
+type Block = { kind: 'text' | 'item'; text: string }
+const ITEM = /^\s*(?:[-*+]|\d+[.)])\s+\S/
+
+function blocks(body: string): Block[] {
+  const out: Block[] = []
+  for (const line of body.split('\n')) {
+    if (ITEM.test(line)) {
+      out.push({ kind: 'item', text: line.trim() })
+      continue
+    }
+    const last = out[out.length - 1]
+    if (last?.kind === 'text') last.text += `\n${line}`
+    else if (line.trim() !== '') out.push({ kind: 'text', text: line })
+  }
+  return out.filter(block => block.text.trim() !== '')
+}
+
 const NUDGE = `Whenever your reply lists options for the user or asks them questions, call \`${UPDATE_TOOL}\` first, as its description says.`
 
 async function open($: EngineInterface) {
@@ -161,9 +180,20 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text, Markdown } = $.ui.resolve(e)
+    const { Box, Text, Markdown, Button } = $.ui.resolve(e)
     const body = await read($, markdown)
     const restored = await read($, isRestored)
+
+    // Desktop draws the pane with no text selection, so each item carries its
+    // own copy and quote buttons; the person can still select in a terminal.
+    const copy = async (text: string) => {
+      const copied = await $.ui.copy({ text, surface: e.surface })
+      if (!copied.isCopied) $.ui.toast(`side-pane: could not copy (${copied.reason})`)
+    }
+    const quote = async (text: string) => {
+      const filled = await $.prompt.fill({ text: `> ${text}\n`, mode: 'insert' })
+      if (!filled.isFilled) $.ui.toast('side-pane: the prompt box is not taking text right now')
+    }
 
     return (
       <Box flexDirection="column">
@@ -172,7 +202,28 @@ export const register: Register = (on, options) => {
         ) : (
           <Box flexDirection="column">
             {restored && <Text dimColor>From an earlier session here</Text>}
-            <Markdown text={body} />
+            {blocks(body).map((block, i) =>
+              block.kind === 'text' ? (
+                <Markdown key={`text:${i}`} text={block.text} />
+              ) : (
+                <Box key={`item:${i}`} flexDirection="row" columnGap={1}>
+                  <Box flexGrow={1}>
+                    <Markdown text={block.text} />
+                  </Box>
+                  <Button key={`copy:${i}`} plain dimColor onPress={() => copy(block.text)}>
+                    copy
+                  </Button>
+                  <Button key={`quote:${i}`} plain dimColor onPress={() => quote(block.text)}>
+                    quote
+                  </Button>
+                </Box>
+              ),
+            )}
+            <Box flexDirection="row">
+              <Button key="copy-all" plain dimColor onPress={() => copy(body)}>
+                copy all
+              </Button>
+            </Box>
           </Box>
         )}
       </Box>
