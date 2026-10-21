@@ -34,6 +34,9 @@ hooks), which are in early access.
   (`/side-pane`, its close mark or ctrl+x x), Claude keeps it current but no longer
   reopens it in that session; `/side-pane` shows it again.
 - Works in the terminal and in the Code tab of Claude Code Desktop.
+- Each item has `copy` and `quote` buttons: `copy` puts it on the clipboard, `quote`
+  inserts it into the prompt as a `>` quote. `copy all` copies the whole pane. Desktop
+  does not let you select text in the pane, so these are the way to reuse an item there.
 - In the terminal, Claude Code places a pane it was not asked for only at least 144
   columns wide (110 once you have opened it yourself). In a narrower terminal you get a
   toast; run `/side-pane` and it opens at any width. Desktop places the pane itself.
